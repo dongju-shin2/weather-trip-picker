@@ -188,7 +188,7 @@ cp .env.example .env   # 그 다음 .env를 열어 your_api_key_here 자리에 �
 
 - **환경변수 등록**: `.env`는 Git에 없으니 Vercel이 빌드할 때 키를 모른다 → Vercel 프로젝트 설정의 Environment Variables에 `VITE_WEATHER_API_KEY`를 따로 등록해야 배포된 사이트에서 날씨가 뜬다.
 - **SPA 새로고침 404 대비**: history 모드 라우터라 `/weather/city_01` 같은 주소를 직접 열면 서버엔 그런 파일이 없어 404가 난다 → `vercel.json`의 rewrite 설정으로 모든 경로를 `index.html`로 돌려보내 라우터가 처리하게 했다.
-- 배포 URL: (배포 후 기입)
+- 배포 URL: https://weather-trip-picker.vercel.app
 
 ## UI/UX 리디자인 (과제 8 이후: 배포 상태에서 개선)
 
