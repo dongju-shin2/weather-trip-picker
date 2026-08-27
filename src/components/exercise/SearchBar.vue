@@ -18,13 +18,20 @@ const emit = defineEmits(['update-query'])
     size="large"
     clearable
   >
-    <template #prefix>🔍</template>
+    <template #prefix>
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="7" />
+        <path d="m21 21-4.3-4.3" />
+      </svg>
+    </template>
   </el-input>
 </template>
 
 <style scoped>
-/* 라운드 정도만 기존 디자인(12px)에 맞춤 — 색/포커스 링은 테마 변수가 알아서 인디고로 */
-.search-input {
-  --el-border-radius-base: 12px;
+/* 모서리 반경은 전역 토큰(8px)을 그대로 따름 — 색/포커스 링은 테마 변수가 알아서 인디고로 */
+.search-icon {
+  width: 16px;
+  height: 16px;
+  color: #94a3b8;
 }
 </style>

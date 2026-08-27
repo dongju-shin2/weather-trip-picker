@@ -12,10 +12,7 @@ const { toggleUnit } = configStore
 </script>
 
 <template>
-  <div class="unit-toggler">
-    <!-- 현재 단위 안내 문구. getter(unitLabel/unitSymbol)가 unit 상태 따라 자동 갱신 -->
-    <span class="unit-info">날씨단위: {{ unitLabel }}({{ unitSymbol }})</span>
-
+  <div class="unit-toggler" :title="`날씨단위: ${unitLabel}(${unitSymbol})`">
     <!-- el-switch로 단위 전환 — 켬/끔이 아니라 ℃/℉ 전환이라 양쪽에 라벨을 붙임 -->
     <!-- 스위치의 on/off는 스토어 unit에서 계산해서 넣고, change 때 toggleUnit 액션 호출 -->
     <el-switch
@@ -25,27 +22,22 @@ const { toggleUnit } = configStore
       @change="toggleUnit"
     />
 
-    <!-- 내가 추가한 state(toggleCount) 확인용 뱃지. 한 번도 안 눌렀으면 숨김 -->
-    <el-tag v-if="toggleCount > 0" size="small" round effect="plain">{{ toggleCount }}회 변경</el-tag>
+    <!-- 내가 추가한 state(toggleCount) 확인용 표시. 한 번도 안 눌렀으면 숨김 -->
+    <span v-if="toggleCount > 0" class="toggle-count">{{ toggleCount }}회 변경</span>
   </div>
 </template>
 
 <style scoped>
-/* 네비 바랑 같은 흰색 알약 톤으로 맞춤 */
+/* 헤더 안에 들어가는 컴팩트 토글 — 패널 장식 없이 스위치만 */
 .unit-toggler {
   display: flex;
   align-items: center;
-  gap: 10px;
-  background: #fff;
-  border-radius: 999px;
-  padding: 10px 18px;
-  box-shadow: 0 4px 14px rgba(30, 41, 59, 0.08);
+  gap: 8px;
 }
 
-.unit-info {
-  color: #334155;
-  font-weight: 600;
-  font-size: 0.9rem;
+.toggle-count {
+  color: var(--color-text-sub);
+  font-size: 13px;
   white-space: nowrap;
 }
 </style>

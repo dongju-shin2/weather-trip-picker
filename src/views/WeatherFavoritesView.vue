@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import BaseDashboardCard from '@/components/exercise/BaseDashboardCard.vue'
+import PageHero from '@/components/PageHero.vue'
 import WeatherCard from '@/components/exercise/WeatherCard.vue'
 import { useFavorites } from '@/composables/useFavorites'
 import { useWeather } from '@/composables/useWeather'
@@ -30,43 +30,38 @@ const showDetail = (city) => {
 
 <template>
   <div class="container">
-    <BaseDashboardCard title="⭐ 찜한 여행지">
-      <template #header>
-        <!-- 담긴 개수 뱃지 -->
-        <el-tag type="warning" round effect="light">{{ favoriteCities.length }}개</el-tag>
-      </template>
+    <!-- 얇은 히어로 — 페이지 제목 + 담긴 개수, 홈과 같은 그라데이션 톤 -->
+    <PageHero compact title="찜한 여행지" :subtitle="`찜해 둔 여행지 ${favoriteCities.length}개`" />
 
-      <!-- 로딩 중 (홈 안 거치고 바로 들어온 경우에만 보임) -->
-      <el-skeleton v-if="isLoading" :rows="4" animated />
+    <!-- 로딩 중 (홈 안 거치고 바로 들어온 경우에만 보임) -->
+    <el-skeleton v-if="isLoading" :rows="4" animated />
 
-      <!-- 홈에서 쓰던 WeatherCard 재사용 — is-favorite은 여기 있는 것 자체가 즐겨찾기라 항상 true -->
-      <!-- 홈과 같은 반응형 그리드 (데스크톱 2열 / 모바일 1열) -->
-      <div v-else-if="favoriteCities.length > 0">
-        <el-row :gutter="16">
-          <el-col v-for="city in favoriteCities" :key="city.id" :xs="24" :md="12">
-            <WeatherCard
-              :city="city"
-              :is-favorite="true"
-              @click-detail="showDetail($event)"
-              @toggle-favorite="toggleFav($event)"
-            />
-          </el-col>
-        </el-row>
-      </div>
+    <!-- 홈에서 쓰던 WeatherCard 재사용 — is-favorite은 여기 있는 것 자체가 즐겨찾기라 항상 true -->
+    <!-- 홈과 같은 반응형 그리드 (데스크톱 3열 / 태블릿 2열 / 모바일 1열) -->
+    <div v-else-if="favoriteCities.length > 0">
+      <el-row :gutter="16">
+        <el-col v-for="city in favoriteCities" :key="city.id" :xs="24" :sm="12" :md="8">
+          <WeatherCard
+            :city="city"
+            :is-favorite="true"
+            @click-detail="showDetail($event)"
+            @toggle-favorite="toggleFav($event)"
+          />
+        </el-col>
+      </el-row>
+    </div>
 
-      <!-- 아직 아무것도 안 담은 경우 → 홈으로 유도 (el-empty 일러스트 + 버튼) -->
-      <el-empty v-else description="아직 찜한 여행지가 없어요 ⭐ 카드의 별(☆)을 눌러 찜해 보세요.">
-        <el-button type="primary" @click="router.push('/')">여행지 고르러 가기</el-button>
-      </el-empty>
-    </BaseDashboardCard>
+    <!-- 아직 아무것도 안 담은 경우 → 홈으로 유도 (el-empty 일러스트 + 버튼) -->
+    <el-empty v-else description="아직 찜한 여행지가 없어요. 카드의 별 아이콘을 눌러 찜해 보세요.">
+      <el-button type="primary" @click="router.push('/')">여행지 고르러 가기</el-button>
+    </el-empty>
   </div>
 </template>
 
 <style scoped>
-/* 홈과 같은 폭 — 카드가 2열로 깔림 */
+/* 폭은 App.vue의 중앙 컨테이너(1140px)가 잡아줌 */
 .container {
-  max-width: 960px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 </style>

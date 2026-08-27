@@ -2,8 +2,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useDisplayTemp } from '@/composables/useDisplayTemp'
+import PageHero from '@/components/PageHero.vue'
+import { iconFor } from '@/constants/weatherIcons'
 import { CITIES } from '@/constants/cities'
-import { fetchCurrentWeather, fetchForecast, fetchAirPollution, toStatus, toAqiLabel } from '@/api/weatherApi'
+import { fetchCurrentWeather, fetchForecast, fetchAirPollution, toStatus, toKoDescription, toAqiLabel } from '@/api/weatherApi'
 import { fetchCitySummary } from '@/api/wikiApi'
 
 const route = useRoute()   // URL의 :cityId 꺼내오기용
@@ -15,9 +17,6 @@ const { formatTemp } = useDisplayTemp()
 // URL의 cityId로 도시 고정 정보(이름/좌표/위키 제목) 찾기
 // 못 찾으면 null → API 호출 없이 바로 "데이터 없음" 분기 (주소창에 이상한 id 직접 친 경우)
 const cityMeta = CITIES.find((c) => c.id === route.params.cityId) ?? null
-
-// status → 이모지. WeatherCard에서 쓰던 매핑 그대로 (+ API 붙이면서 '눈' 추가)
-const icons = { 맑음: '☀️', 비: '🌧️', 구름: '☁️', 흐림: '🌫️', 눈: '❄️' }
 
 // ===== API 응답 담을 상태들 =====
 const current = ref(null)       // 현재 날씨 (기온/습도/풍속...)
@@ -40,7 +39,8 @@ const pickDaily = (list) =>
         weekday: 'short',
       }),
       temp: Math.round(item.main.temp), // 섭씨 원본
-      status: toStatus(item.weather[0]),
+      status: toStatus(item.weather[0]),             // 행 이모지 매핑용 대분류
+      description: toKoDescription(item.weather[0]), // id 기준 자체 매핑 라벨
     }))
 
 const load = async () => {
@@ -57,7 +57,7 @@ const load = async () => {
       temp: Math.round(cur.main.temp),            // 섭씨 원본 (표시 변환은 formatTemp가)
       feelsLike: Math.round(cur.main.feels_like), // 체감 온도 — 실제 API라서 이런 값도 공짜로 생김
       status: toStatus(cur.weather[0]),
-      description: cur.weather[0].description,    // "온흐림" 같은 한국어 상세 문구
+      description: toKoDescription(cur.weather[0]), // API 번역("온흐림") 대신 id 기준 자체 매핑
       humidity: cur.main.humidity,
       wind: cur.wind.speed,
     }
@@ -93,17 +93,14 @@ const aqiStatus = computed(() => {
   if (air.value.aqi === 3) return 'warning'
   return 'exception'
 })
-// 같은 등급인데 el-progress는 'exception', el-tag는 'danger'라는 이름을 써서 태그용만 번역
-const aqiTagType = computed(() => (aqiStatus.value === 'exception' ? 'danger' : aqiStatus.value))
 </script>
 
 <template>
   <div class="container">
-    <el-card class="detail-card">
-      <template #header>
-        <h2 class="detail-title">📊 지역별 상세 기상 관측 정보</h2>
-      </template>
+    <!-- 얇은 히어로 — 페이지 제목 포함, 홈과 같은 그라데이션 톤 -->
+    <PageHero compact title="지역별 상세 기상 관측 정보" :subtitle="cityMeta ? cityMeta.fullName : ''" />
 
+    <el-card class="detail-card">
       <!-- 0) URL에 이상한 cityId를 직접 쳐서 들어온 케이스 -->
       <el-empty
         v-if="!cityMeta"
@@ -121,15 +118,22 @@ const aqiTagType = computed(() => (aqiStatus.value === 'exception' ? 'danger' : 
 
       <!-- 3) 정상 케이스 -->
       <div v-else-if="current">
-        <p class="big-emoji">{{ icons[current.status] ?? '🌈' }}</p>
+        <!-- 현재 날씨 요약 — 카드와 같은 매핑의 큰 이모지 + 도시명 + 상태·기온 -->
+        <div class="current-head">
+          <span class="current-emoji">{{ iconFor(current.status) }}</span>
+          <div>
+            <p class="current-city">{{ cityMeta.name }}</p>
+            <p class="current-desc">{{ current.description }} · {{ formatTemp(current.temp) }}</p>
+          </div>
+        </div>
 
         <!-- 라벨-값 목록은 el-descriptions가 딱 그 용도의 컴포넌트 -->
         <el-descriptions :column="1" border>
-          <el-descriptions-item label="📍 지정 지역">{{ cityMeta.fullName }}</el-descriptions-item>
+          <el-descriptions-item label="지정 지역">{{ cityMeta.fullName }}</el-descriptions-item>
           <el-descriptions-item label="실시간 기온">
             {{ formatTemp(current.temp) }} (체감 {{ formatTemp(current.feelsLike) }})
           </el-descriptions-item>
-          <el-descriptions-item label="기상 현황">{{ current.status }} · {{ current.description }}</el-descriptions-item>
+          <el-descriptions-item label="기상 현황">{{ current.description }}</el-descriptions-item>
           <el-descriptions-item label="대기 습도(%)">{{ current.humidity }}%</el-descriptions-item>
           <el-descriptions-item label="현재 풍속(m/s)">{{ current.wind }}m/s</el-descriptions-item>
         </el-descriptions>
@@ -137,7 +141,7 @@ const aqiTagType = computed(() => (aqiStatus.value === 'exception' ? 'danger' : 
         <!-- 미세먼지 (OWM Air Pollution API) — 등급 태그 + 게이지 -->
         <div v-if="air" class="air-box">
           <div class="air-head">
-            <el-tag :type="aqiTagType" round>😮‍💨 대기질 {{ air.label }}</el-tag>
+            <span class="air-label">대기질 {{ air.label }}</span>
             <span class="air-detail">초미세먼지 {{ air.pm25 }} · 미세먼지 {{ air.pm10 }} ㎍/㎥</span>
           </div>
           <!-- aqi 1~5를 20~100% 게이지로 — 낮을수록 좋은 값 -->
@@ -146,12 +150,12 @@ const aqiTagType = computed(() => (aqiStatus.value === 'exception' ? 'danger' : 
 
         <!-- 5일 예보 (OWM Forecast API에서 매일 정오만 추림) — 리스트 대신 el-table -->
         <div v-if="dailyForecast.length" class="forecast">
-          <h3 class="section-title">📅 5일 예보 (정오 기준)</h3>
+          <h3 class="section-title">5일 예보 (정오 기준)</h3>
           <el-table :data="dailyForecast" size="small">
             <el-table-column prop="label" label="날짜" />
             <el-table-column label="날씨" align="center">
               <template #default="{ row }">
-                <span class="fc-emoji">{{ icons[row.status] ?? '🌈' }}</span> {{ row.status }}
+                <span class="fc-emoji">{{ iconFor(row.status) }}</span> {{ row.description }}
               </template>
             </el-table-column>
             <el-table-column label="기온" align="right">
@@ -163,7 +167,7 @@ const aqiTagType = computed(() => (aqiStatus.value === 'exception' ? 'danger' : 
 
         <!-- 도시 소개 (위키백과 요약 API) — 실패했으면 이 카드만 조용히 빠짐 -->
         <div v-if="wiki" class="wiki-box">
-          <h3 class="section-title">🧳 여행 전에 알아두기</h3>
+          <h3 class="section-title">여행 전에 알아두기</h3>
           <!-- el-image: 로딩 중 placeholder + 클릭하면 크게 보기(preview)가 공짜로 생김 -->
           <el-image
             v-if="wiki.thumbnail"
@@ -179,30 +183,46 @@ const aqiTagType = computed(() => (aqiStatus.value === 'exception' ? 'danger' : 
       </div>
 
       <div class="back-row">
-        <el-button type="primary" plain round @click="router.push('/')">← 메인 대시보드로 돌아가기</el-button>
+        <el-button type="primary" plain @click="router.push('/')">메인 대시보드로 돌아가기</el-button>
       </div>
     </el-card>
   </div>
 </template>
 
 <style scoped>
-/* 상세는 위→아래로 읽는 페이지라 크게 안 벌리고 살짝만 넓힘 */
+/* 상세는 위→아래로 읽는 페이지라 본문 컨테이너(1140px) 안에서 720px로만 */
 .container {
-  max-width: 560px;
+  max-width: 720px;
   margin: 0 auto;
 }
 
-.detail-title {
+/* 현재 날씨 요약 헤더 — 표 위쪽, 큰 이모지 */
+.current-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.current-emoji {
+  font-size: 56px;
+  line-height: 1;
+}
+.current-city {
   margin: 0;
-  font-size: 1.25rem;
-  color: #334155;
-  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-heading);
+}
+.current-desc {
+  margin: 4px 0 0;
+  font-size: 16px;
+  color: var(--color-text-sub);
 }
 
-.big-emoji {
-  font-size: 3.5rem;
-  margin: 0 0 12px;
-  text-align: center;
+/* 5일 예보 행 이모지 */
+.fc-emoji {
+  font-size: 19px;
+  vertical-align: -2px;
 }
 
 /* 에러 알림 + 다시 시도 버튼 세로 배치 */
@@ -225,19 +245,25 @@ const aqiTagType = computed(() => (aqiStatus.value === 'exception' ? 'danger' : 
   flex-wrap: wrap;
   margin-bottom: 8px;
 }
+.air-label {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text);
+}
 .air-detail {
-  font-size: 0.85rem;
-  color: #64748b;
+  font-size: 14px;
+  color: var(--color-text-sub);
 }
 
 /* 5일 예보 / 위키 섹션 제목 */
 .section-title {
-  margin: 20px 0 10px;
-  font-size: 1.05rem;
-  color: #334155;
-}
-.fc-emoji {
-  font-size: 1.2rem;
+  margin: 24px 0 12px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-heading);
+  border-left: 4px solid #4f46e5;
+  padding-left: 10px;
+  line-height: 1.3;
 }
 
 /* 위키백과 도시 소개 */
@@ -250,14 +276,14 @@ const aqiTagType = computed(() => (aqiStatus.value === 'exception' ? 'danger' : 
 }
 .wiki-extract {
   margin: 0;
-  font-size: 0.95rem;
-  color: #475569;
-  line-height: 1.6;
+  font-size: 16px;
+  color: var(--color-text);
+  line-height: 1.7;
 }
 .wiki-link {
   display: inline-block;
   margin-top: 8px;
-  font-size: 0.85rem;
+  font-size: 14px;
   color: #4f46e5;
   text-decoration: none;
   font-weight: 600;

@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { CITIES } from '@/constants/cities'
-import { fetchCurrentWeather, toStatus } from '@/api/weatherApi'
+import { fetchCurrentWeather, toStatus, toKoDescription } from '@/api/weatherApi'
 
 // useFavorites랑 같은 패턴 — 모듈 스코프 ref라 홈/즐겨찾기 어느 뷰에서 쓰든 같은 목록 하나를 바라봄
 // 덕분에 페이지를 왔다 갔다 해도 다시 안 불러오고, mock이 두 파일에 중복돼 있던 문제도 해결
@@ -26,7 +26,7 @@ export function useWeather() {
             spots: c.spots,
             temp: Math.round(data.main.temp), // 섭씨 원본 (화씨 표시는 configStore가 담당)
             status: toStatus(data.weather[0]),
-            description: data.weather[0].description, // "튼구름" 같은 한국어 상세 문구
+            description: toKoDescription(data.weather[0]), // API 번역("온흐림") 대신 id 기준 자체 매핑
           }
         })
       )

@@ -12,14 +12,14 @@ defineProps({
 </template>
 
 <style scoped>
-/* 하단 상태바 */
+/* 하단 상태바 — 포인트 컬러(인디고)의 연한 톤 하나만 */
 .status-bar {
   margin-top: 24px;
-  padding: 14px 18px;
+  padding: 16px;
   border-radius: 12px;
-  background: rgba(99, 102, 241, 0.1);
-  color: #4338ca;
-  font-size: 1.05rem;
+  background: #eef2ff;
+  color: #4f46e5;
+  font-size: 16px;
   text-align: center;
 }
 </style>

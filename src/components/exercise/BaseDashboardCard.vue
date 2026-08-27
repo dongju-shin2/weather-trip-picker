@@ -1,37 +1,42 @@
 <script setup>
-// 흰색 패널 디자인을 공통으로 쓰기 위한 래퍼 — 검색 영역이랑 날씨 현황 영역이 둘 다 이걸로 감싸짐
-// 속은 el-card고, 우리 slot 구조(#header/기본)를 el-card의 slot에 그대로 이어붙이는 얇은 래퍼
+// 예전엔 el-card 래퍼였는데, "카드 속 카드" 중첩을 없애면서 카드 없는 섹션으로 변경
+// 섹션 제목은 페이지 배경 위 헤딩으로 직접 얹고, 콘텐츠(카드 그리드/검색창/폼)는 그 아래에
 defineProps({
   title: { type: String, default: '' },
 })
 </script>
 
 <template>
-  <el-card class="dashboard-card">
-    <template #header>
-      <div class="panel-head">
-        <h2 v-if="title">{{ title }}</h2>
-        <!-- 타이틀 오른쪽 영역 (토글 버튼 등 부모가 주입) -->
-        <slot name="header" />
-      </div>
-    </template>
+  <section class="dashboard-section">
+    <div class="section-head">
+      <h2 v-if="title">{{ title }}</h2>
+      <!-- 타이틀 오른쪽 영역 (토글 버튼 등 부모가 주입) -->
+      <slot name="header" />
+    </div>
     <slot />
-  </el-card>
+  </section>
 </template>
 
 <style scoped>
-.dashboard-card {
-  margin-bottom: 20px;
+.dashboard-section {
+  margin-bottom: 40px;
 }
 
-.panel-head {
+.section-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
 }
-.panel-head h2 {
+.section-head h2 {
   margin: 0;
-  font-size: 1.15rem;
-  color: #334155;
+  font-size: 27px;
+  font-weight: 700;
+  color: var(--color-heading);
+  /* 포인트 컬러 세로 accent bar */
+  border-left: 4px solid #4f46e5;
+  padding-left: 12px;
+  line-height: 1.3;
 }
 </style>

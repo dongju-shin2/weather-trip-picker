@@ -43,6 +43,27 @@ const MAIN_TO_STATUS = {
 // Mist/Haze/Fog/Dust 같은 대기 현상 그룹은 전부 '흐림'으로 퉁침
 export const toStatus = (weather) => MAIN_TO_STATUS[weather.main] ?? '흐림'
 
+// weather[0].id → 한국어 날씨 설명
+// API가 lang=kr로 주는 description은 "온흐림"(overcast clouds) 같은 어색한 번역이 섞여 있어서
+// 그대로 출력하지 않고 id 코드 기준으로 직접 매핑 (https://openweathermap.org/weather-conditions)
+export const toKoDescription = (weather) => {
+  const id = weather.id
+  if (id >= 200 && id < 300) return '뇌우'
+  if (id >= 300 && id < 400) return '이슬비'
+  if (id >= 500 && id < 600) return '비'
+  if (id >= 600 && id < 700) return '눈'
+  if (id === 701 || id === 741) return '안개'
+  if (id === 721) return '연무'
+  if (id === 731 || id === 751 || id === 761) return '먼지'
+  if (id === 771) return '돌풍'
+  if (id === 781) return '태풍'
+  if (id === 800) return '맑음'
+  if (id === 801 || id === 802) return '구름 조금'
+  if (id === 803) return '구름 많음'
+  if (id === 804) return '흐림'
+  return toStatus(weather) // 정의 안 된 코드는 대분류 라벨로
+}
+
 // 대기질 지수(aqi 1~5) → 한글 등급 (OWM 기준: 1이 제일 좋음)
 const AQI_LABELS = { 1: '좋음', 2: '보통', 3: '나쁨', 4: '매우 나쁨', 5: '위험' }
 export const toAqiLabel = (aqi) => AQI_LABELS[aqi] ?? '정보 없음'

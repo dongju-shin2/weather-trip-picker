@@ -17,8 +17,6 @@ const { formatTemp } = useDisplayTemp()
 const formCityId = ref(CITIES[0].id)
 const formDates = ref(null) // daterange 모드라 [시작 Date, 종료 Date] 배열이 들어옴
 
-const icons = { 맑음: '☀️', 비: '🌧️', 구름: '☁️', 흐림: '🌫️', 눈: '❄️' }
-
 const tripCity = computed(() => CITIES.find((c) => c.id === tripStore.cityId) ?? null)
 
 // 오늘 기준 며칠 뒤인지 (예보 범위 판정용)
@@ -76,7 +74,10 @@ const saveTrip = () => {
 </script>
 
 <template>
-  <BaseDashboardCard title="🧳 내 여행">
+  <!-- id="my-trip": 헤더의 '내 여행' 메뉴가 이 섹션으로 스크롤해 들어옴 -->
+  <BaseDashboardCard id="my-trip" title="내 여행">
+    <!-- 콘텐츠는 얇은 테두리 카드 한 겹으로 (섹션 자체는 카드가 아님) -->
+    <div class="panel-card">
     <!-- 아직 등록 전 → 목적지 + 기간 등록 폼 -->
     <div v-if="!tripStore.hasTrip" class="trip-form">
       <el-select v-model="formCityId" class="city-select">
@@ -100,7 +101,7 @@ const saveTrip = () => {
     <div v-else class="trip-info">
       <p class="trip-title">
         <strong>{{ tripCity?.name }}</strong> {{ tripStore.durationLabel }} 여행
-        <el-tag :type="ddayLabel === '지난 여행' ? 'info' : 'primary'" round>{{ ddayLabel }}</el-tag>
+        <span class="dday" :class="{ past: ddayLabel === '지난 여행' }">{{ ddayLabel }}</span>
         <span class="trip-date">{{ tripStore.startDate }} ~ {{ tripStore.endDate }}</span>
       </p>
 
@@ -109,7 +110,7 @@ const saveTrip = () => {
         <li v-for="d in tripDays" :key="d.key">
           <span class="day-label">{{ d.label }} ({{ d.date }})</span>
           <span v-if="d.forecast" class="day-forecast">
-            {{ icons[d.forecast.status] ?? '🌈' }} {{ d.forecast.status }} · {{ formatTemp(d.forecast.temp) }}
+            {{ d.forecast.description }} · {{ formatTemp(d.forecast.temp) }}
           </span>
           <span v-else class="day-wait">예보 대기 (5일 전부터)</span>
         </li>
@@ -119,10 +120,24 @@ const saveTrip = () => {
 
       <el-button size="small" plain @click="tripStore.clearTrip()">여행 변경/삭제</el-button>
     </div>
+    </div>
   </BaseDashboardCard>
 </template>
 
 <style scoped>
+/* sticky 헤더에 안 가리게 스크롤 도착 지점을 헤더 높이만큼 내림 */
+#my-trip {
+  scroll-margin-top: 84px;
+}
+
+/* 카드 한 겹 — 테두리만 쓰고 그림자는 안 씀 (둘 중 하나만) */
+.panel-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px 20px;
+}
+
 .trip-form {
   display: flex;
   align-items: center;
@@ -135,8 +150,8 @@ const saveTrip = () => {
 .hint {
   margin: 0 0 10px;
   width: 100%;
-  color: #64748b;
-  font-size: 0.9rem;
+  color: var(--color-text-sub);
+  font-size: 15px;
 }
 .trip-form .hint {
   margin-bottom: 0;
@@ -144,16 +159,26 @@ const saveTrip = () => {
 
 .trip-title {
   margin: 0 0 10px;
-  font-size: 1.05rem;
-  color: #0f172a;
+  font-size: 18px;
+  color: var(--color-heading);
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
 }
 .trip-date {
-  color: #64748b;
-  font-size: 0.9rem;
+  color: var(--color-text-sub);
+  font-size: 15px;
+}
+
+/* D-day — 배지 대신 포인트 컬러 텍스트, 지난 여행은 회색 */
+.dday {
+  color: #4f46e5;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.dday.past {
+  color: var(--color-text-sub);
 }
 
 /* 일차별 예보 줄 */
@@ -168,20 +193,20 @@ const saveTrip = () => {
   justify-content: space-between;
   padding: 6px 4px;
   border-bottom: 1px solid #f1f5f9;
-  font-size: 0.95rem;
+  font-size: 15px;
 }
 .day-list li:last-child {
   border-bottom: none;
 }
 .day-label {
-  color: #64748b;
+  color: var(--color-text-sub);
 }
 .day-forecast {
-  color: #334155;
+  color: var(--color-text);
   font-weight: 600;
 }
 .day-wait {
-  color: #94a3b8;
-  font-size: 0.85rem;
+  color: var(--color-text-sub);
+  font-size: 14px;
 }
 </style>

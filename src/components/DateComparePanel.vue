@@ -28,8 +28,6 @@ const onPick = (val) => {
   if (val) loadForecasts()
 }
 
-const icons = { 맑음: '☀️', 비: '🌧️', 구름: '☁️', 흐림: '🌫️', 눈: '❄️' }
-
 // 여행하기 좋은 날씨 순위 — 숫자가 작을수록 좋음
 const statusRank = { 맑음: 0, 구름: 1, 흐림: 2, 눈: 3, 비: 4 }
 
@@ -48,44 +46,83 @@ const comparison = computed(() => {
 </script>
 
 <template>
-  <BaseDashboardCard title="📅 이 날짜엔 어디가 좋을까?">
-    <template #header>
-      <el-date-picker
-        v-model="pickedDate"
-        type="date"
-        placeholder="여행 날짜 선택"
-        :disabled-date="disabledDate"
-        @change="onPick"
-      />
-    </template>
+  <BaseDashboardCard title="이 날짜엔 어디가 좋을까?">
+    <!-- 핵심 기능이라 제목 아래 큰 입력으로 — 좌측 정렬, 클릭 가능한 요소임이 분명하게 -->
+    <el-date-picker
+      v-model="pickedDate"
+      class="date-input"
+      type="date"
+      placeholder="여행 날짜 선택"
+      :disabled-date="disabledDate"
+      @change="onPick"
+    />
 
-    <!-- 날짜 선택 전 → 안내 / 로딩 / 실패 / 비교 결과 순으로 분기 -->
+    <!-- 안내 문구는 카드 없이 입력 필드 바로 아래 보조 텍스트로 -->
     <p v-if="!pickedDate" class="hint">
       날짜를 고르면 5개 도시의 그 날 예보를 여행하기 좋은 순서로 보여드려요 (무료 예보 범위: 오늘부터 5일)
     </p>
-    <el-skeleton v-else-if="isLoading" :rows="3" animated />
-    <div v-else-if="loadError" class="error-box">
-      <el-alert :title="loadError" type="error" show-icon :closable="false" />
-      <el-button type="primary" plain @click="loadForecasts(true)">다시 시도</el-button>
+
+    <!-- 날짜 선택 후 결과 — 얇은 테두리 카드 한 겹 (섹션 자체는 카드가 아님) -->
+    <div v-if="pickedDate" class="panel-card">
+      <el-skeleton v-if="isLoading" :rows="3" animated />
+      <div v-else-if="loadError" class="error-box">
+        <el-alert :title="loadError" type="error" show-icon :closable="false" />
+        <el-button type="primary" plain @click="loadForecasts(true)">다시 시도</el-button>
+      </div>
+      <ul v-else class="compare-list">
+        <li v-for="(city, idx) in comparison" :key="city.id">
+          <span class="rank">{{ idx + 1 }}</span>
+          <span class="name">{{ city.name }}</span>
+          <span class="status">{{ city.forecast.description }} · {{ formatTemp(city.forecast.temp) }}</span>
+          <span v-if="idx === 0" class="best-note">여기 어때요?</span>
+          <el-button size="small" text type="primary" @click="router.push('/weather/' + city.id)">상세보기</el-button>
+        </li>
+      </ul>
     </div>
-    <ul v-else class="compare-list">
-      <li v-for="(city, idx) in comparison" :key="city.id">
-        <span class="rank">{{ idx + 1 }}</span>
-        <span class="emoji">{{ icons[city.forecast.status] ?? '🌈' }}</span>
-        <span class="name">{{ city.name }}</span>
-        <span class="status">{{ city.forecast.status }} · {{ formatTemp(city.forecast.temp) }}</span>
-        <el-tag v-if="idx === 0" type="success" size="small" round>여기 어때요?</el-tag>
-        <el-button size="small" text type="primary" @click="router.push('/weather/' + city.id)">상세보기</el-button>
-      </li>
-    </ul>
   </BaseDashboardCard>
 </template>
 
 <style scoped>
+/* ===== 날짜 선택 입력 — 핵심 기능이라 크게 ===== */
+.date-input {
+  /* Element Plus 날짜 입력 폭/hover 보더는 CSS 변수로 제어 */
+  --el-date-editor-width: 360px;
+  --el-input-hover-border-color: #4f46e5;
+  max-width: 100%;
+  height: 54px;
+}
+/* 내부 래퍼(흰 배경 + 1px 보더 역할의 inset shadow)를 같이 키움 */
+.date-input :deep(.el-input__wrapper) {
+  height: 54px;
+  padding: 0 16px;
+  border-radius: 10px;
+  background: #fff;
+}
+.date-input :deep(.el-input__inner) {
+  font-size: 17px;
+  height: 100%;
+}
+.date-input :deep(.el-input__inner::placeholder) {
+  font-size: 17px;
+}
+.date-input :deep(.el-input__icon) {
+  font-size: 18px;
+}
+
+/* 카드 한 겹 — 테두리만 쓰고 그림자는 안 씀 (둘 중 하나만) */
+.panel-card {
+  margin-top: 16px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px 20px;
+}
+
+/* 입력 필드 바로 아래 보조 안내 문구 */
 .hint {
-  margin: 0;
-  color: #64748b;
-  font-size: 0.95rem;
+  margin: 10px 0 0;
+  color: var(--color-text-sub);
+  font-size: 14px;
 }
 
 .error-box {
@@ -113,27 +150,33 @@ const comparison = computed(() => {
 }
 
 .rank {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   background: #eef2ff;
   color: #4f46e5;
-  font-size: 0.8rem;
+  font-size: 13px;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-.emoji {
-  font-size: 1.3rem;
+  flex-shrink: 0;
 }
 .name {
   font-weight: 600;
-  color: #0f172a;
+  font-size: 16px;
+  color: var(--color-heading);
 }
 .status {
-  color: #64748b;
-  font-size: 0.9rem;
+  color: var(--color-text-sub);
+  font-size: 15px;
   flex: 1;
+}
+
+/* 1위 도시 추천 문구 — 배지 대신 포인트 컬러 텍스트 */
+.best-note {
+  color: #4f46e5;
+  font-size: 14px;
+  font-weight: 600;
 }
 </style>

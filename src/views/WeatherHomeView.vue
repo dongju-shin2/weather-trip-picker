@@ -2,6 +2,7 @@
 import { ref, computed, watch, watchEffect, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import BaseDashboardCard from '@/components/exercise/BaseDashboardCard.vue'
+import PageHero from '@/components/PageHero.vue'
 import SearchBar from '@/components/exercise/SearchBar.vue'
 import WeatherCard from '@/components/exercise/WeatherCard.vue'
 import StatusBar from '@/components/exercise/StatusBar.vue'
@@ -126,6 +127,13 @@ const showDetail = (city) => {
 
 <template>
   <div class="container">
+    <!-- 상단 히어로 — 서비스명은 헤더 로고에 있으니 여기선 가치 제안 문구를 타이틀로 -->
+    <!-- \n: 데스크톱에서도 "날짜만 고르면," 뒤에서 자연스럽게 두 줄로 (PageHero가 pre-line 처리) -->
+    <PageHero
+      :title="'날짜만 고르면,\n그날 날씨 좋은 여행지가 한눈에.'"
+      subtitle="날짜별 예보를 비교해서 여행하기 좋은 도시를 순서대로 알려드려요."
+    />
+
     <!-- slot으로 전달되는 SearchBar/WeatherCard는 시각적으로는 BaseDashboardCard 내부에 있지만,
          부모 스코프에서 컴파일되므로 부모의 상태/메서드와 직접 바인딩 가능 -->
 
@@ -136,11 +144,11 @@ const showDetail = (city) => {
     <DateComparePanel />
 
     <!-- 날씨 현황 영역. 검색은 이 목록을 거르는 도구라 같은 카드 안에 둠 -->
-    <BaseDashboardCard title="🗺️ 지금 여러 여행지 날씨">
+    <BaseDashboardCard title="지금 여러 여행지 날씨">
       <template #header>
         <!-- 명소 보기 토글. showSpots를 직접 뒤집는 버튼이라 부모가 소유 -->
-        <el-button size="small" round plain @click="showSpots = !showSpots">
-          {{ showSpots ? '📍 관광 명소 숨기기' : '📍 관광 명소 보기' }}
+        <el-button size="small" plain @click="showSpots = !showSpots">
+          {{ showSpots ? '관광 명소 숨기기' : '관광 명소 보기' }}
         </el-button>
       </template>
 
@@ -163,10 +171,10 @@ const showDetail = (city) => {
       </div>
 
       <!-- 1) 검색어 없음 → 원본 전체 리스트 -->
-      <!-- el-row/el-col 반응형 그리드: 한 줄이 24칸이라 md(데스크톱)에선 12칸씩 2열, xs(모바일)에선 24칸 1열 -->
+      <!-- el-row/el-col 반응형 그리드: 데스크톱 3열(md=8) / 태블릿 2열(sm=12) / 모바일 1열(xs=24) -->
       <div v-else-if="!searchQuery.trim()">
         <el-row :gutter="16">
-          <el-col v-for="city in weatherList" :key="city.id" :xs="24" :md="12">
+          <el-col v-for="city in weatherList" :key="city.id" :xs="24" :sm="12" :md="8">
             <WeatherCard
               :city="city"
               :show-spots="showSpots"
@@ -185,7 +193,7 @@ const showDetail = (city) => {
       <!-- 2) 검색어 있고 매칭 결과 있음 → 필터링된 리스트 -->
       <div v-else-if="filteredWeatherList.length > 0">
         <el-row :gutter="16">
-          <el-col v-for="city in filteredWeatherList" :key="city.id" :xs="24" :md="12">
+          <el-col v-for="city in filteredWeatherList" :key="city.id" :xs="24" :sm="12" :md="8">
             <WeatherCard
               :city="city"
               :show-spots="showSpots"
@@ -202,7 +210,7 @@ const showDetail = (city) => {
       </div>
 
       <!-- 3) 매칭 결과 없음 — el-empty가 일러스트까지 그려줌 -->
-      <el-empty v-else description="검색 결과가 일치하는 도시가 없습니다 🥲" />
+      <el-empty v-else description="검색 결과가 일치하는 도시가 없습니다." />
     </BaseDashboardCard>
 
     <!-- 등록 전 내 여행 폼은 여정의 마지막 단계(고르고 나서 등록)라 맨 아래 -->
@@ -214,17 +222,15 @@ const showDetail = (city) => {
 </template>
 
 <style scoped>
-/* 배경 그라데이션은 App.vue로 올라갔으니 여기선 컨텐츠 폭만 잡음 */
-/* 데스크톱에서 좌우 여백이 너무 남아서 480 → 960으로 넓힘 (카드가 2열로 깔리는 폭) */
+/* 폭은 App.vue의 중앙 컨테이너(1140px)가 잡아줌 */
 .container {
-  max-width: 960px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 .search-meta {
-  margin: 6px 4px 14px;
-  font-size: 0.95rem;
-  color: #64748b;
+  margin: 8px 0 16px;
+  font-size: 15px;
+  color: var(--color-text-sub);
 }
 .search-meta strong {
   color: #4f46e5;

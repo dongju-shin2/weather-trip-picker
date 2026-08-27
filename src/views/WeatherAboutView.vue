@@ -2,25 +2,25 @@
 // 서비스 소개 — 기술 스택 나열이 아니라 "왜 만들었고 어떻게 쓰는지"를 보여주는 페이지
 // 기획 의도가 앱 안에서도 읽히게, README의 스토리를 사용자용 말로 옮김
 import { useRouter } from 'vue-router'
+import PageHero from '@/components/PageHero.vue'
 
 const router = useRouter()
 </script>
 
 <template>
   <div class="container">
-    <el-card>
-      <template #header>
-        <h2 class="about-title">ℹ️ 서비스 소개</h2>
-      </template>
+    <!-- 얇은 히어로 — 페이지 제목 포함, 홈과 같은 그라데이션 톤 -->
+    <PageHero compact title="서비스 소개" subtitle="날씨를 먼저 보고 여행지를 고르는, 순서를 뒤집은 여행 계획" />
 
-      <h3 class="section-title">🤔 왜 만들었나요?</h3>
+    <el-card>
+      <h3 class="section-title">왜 만들었나요?</h3>
       <p class="about-desc">
         여행 계획은 보통 목적지부터 정하고, 날씨는 그다음에 찾아보게 됩니다. 그러다 출발 직전에 비 예보를
         발견하고 실망한 경험, 다들 있으시죠. 이 앱은 그 순서를 뒤집었습니다 —
         <strong>날짜를 먼저 고르면, 그날 날씨가 좋은 여행지를 앱이 골라줍니다.</strong>
       </p>
 
-      <h3 class="section-title">🧭 이렇게 쓰세요</h3>
+      <h3 class="section-title">이렇게 쓰세요</h3>
       <!-- el-steps: 사용 흐름을 단계로 보여주는 컴포넌트. active=3이라 전부 완료(체크) 표시 -->
       <el-steps direction="vertical" :active="3">
         <el-step
@@ -33,7 +33,7 @@ const router = useRouter()
         />
         <el-step
           title="찜하거나 내 여행으로 등록"
-          description="마음에 들면 별(☆)로 찜해두거나 '내 여행'에 기간을 등록하세요. 여행 5일 전부터 일차별 예보를 자동으로 보여드립니다."
+          description="마음에 들면 별 아이콘으로 찜해두거나 '내 여행'에 기간을 등록하세요. 여행 5일 전부터 일차별 예보를 자동으로 보여드립니다."
         />
       </el-steps>
 
@@ -51,25 +51,24 @@ const router = useRouter()
 
 <style scoped>
 .container {
-  max-width: 560px;
+  max-width: 720px;
   margin: 0 auto;
 }
 
-.about-title {
-  margin: 0;
-  font-size: 1.25rem;
-  color: #334155;
-}
-
 .section-title {
-  margin: 0 0 10px;
-  font-size: 1.05rem;
-  color: #334155;
+  margin: 0 0 12px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-heading);
+  border-left: 4px solid #4f46e5;
+  padding-left: 10px;
+  line-height: 1.3;
 }
 
 .about-desc {
   margin: 0 0 24px;
-  color: #475569;
+  color: var(--color-text);
+  font-size: 16px;
   line-height: 1.7;
 }
 .about-desc strong {
@@ -80,8 +79,8 @@ const router = useRouter()
   margin: 20px 0 0;
   padding-top: 14px;
   border-top: 1px solid #f1f5f9;
-  color: #94a3b8;
-  font-size: 0.85rem;
+  color: var(--color-text-sub);
+  font-size: 14px;
   line-height: 1.6;
 }
 

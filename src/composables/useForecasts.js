@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { CITIES } from '@/constants/cities'
-import { fetchForecast, toStatus } from '@/api/weatherApi'
+import { fetchForecast, toStatus, toKoDescription } from '@/api/weatherApi'
 
 // 도시별 5일 예보 캐시 — useWeather처럼 모듈 스코프라 날짜비교 패널/내여행 패널이 같은 데이터를 봄
 // 현재 날씨(useWeather)와 분리한 이유: 예보 5도시분은 호출이 무거워서, 실제로 필요할 때만 받으려고
@@ -32,7 +32,8 @@ export function useForecasts() {
               dateKey: toDateKey(item.dt * 1000), // 날짜별로 골라내기 쉽게 키를 미리 계산
               hour: new Date(item.dt * 1000).getHours(),
               temp: Math.round(item.main.temp), // 섭씨 원본
-              status: toStatus(item.weather[0]),
+              status: toStatus(item.weather[0]),               // 정렬 등 로직용 대분류 (기존 그대로)
+              description: toKoDescription(item.weather[0]),   // 표시용 자체 매핑 라벨
             })),
           ]
         })
