@@ -1,4 +1,4 @@
-# 날씨 페이지 (과제 1 ~ 과제 7)
+# 🌦️ 날씨 보고 여행지 고르기 (Vue 실습 과제 1 ~ 8)
 
 ## 어떤 서비스인가
 
@@ -19,7 +19,7 @@
 ## 만든 과정
 
 Vue 3 Composition API(`<script setup>`) 실습 과제.
-과제 1(날씨 Mockup) → 과제 2(반응형 시스템 - computed/watch/watchEffect) → 과제 3(컴포넌트 분리 - props/emits/slot) → 과제 4(라우터 적용 - Vue Router) → 과제 5(스토어 적용 - Pinia) → 과제 6(Axios로 실제 API 연동) → 과제 7(외부 UI 라이브러리 - Element Plus 적용) 순서로 같은 프로젝트에 이어서 구현했다.
+과제 1(날씨 Mockup) → 과제 2(반응형 시스템 - computed/watch/watchEffect) → 과제 3(컴포넌트 분리 - props/emits/slot) → 과제 4(라우터 적용 - Vue Router) → 과제 5(스토어 적용 - Pinia) → 과제 6(Axios로 실제 API 연동) → 과제 7(외부 UI 라이브러리 - Element Plus 적용) → 과제 8(품질관리·빌드·배포) 순서로 같은 프로젝트에 이어서 구현했다.
 
 - 과제 1~2는 한 파일(`src/views/WeatherMockup.vue`)에 만들었고, 과제 3부터 views/components/composables/stores 폴더 구조로 쪼갰다. 각 단계 당시의 화면은 `WeatherMockup.vue`(과제 1~2), `WeatherParent.vue`(과제 3)로 보존해뒀다 (현재 라우터에는 미등록 — 최종 앱은 아래 views 5개로 동작).
 - 현재 구조: views 5개(`WeatherHomeView`, `WeatherDetailView`, `WeatherAboutView`, `WeatherFavoritesView`, `NotFoundView`) + 레이아웃 컴포넌트(`TheHeader`, `UnitToggler`) + 재사용 부품(`components/exercise/` 4개) + `composables/`(`useFavorites`, `useWeather`, `useDisplayTemp`) + `stores/configStore.js` + `api/`(`weatherApi`, `wikiApi`) + `constants/cities.js`
@@ -174,6 +174,41 @@ cp .env.example .env   # 그 다음 .env를 열어 your_api_key_here 자리에 �
    - **서비스 소개 페이지 개편**: 기술 설명("Vue 3 기반 실습용...")뿐이던 페이지를 "왜 만들었나(기획 스토리) → 이렇게 쓰세요(`el-steps` 3단계 사용 흐름) → 기술 스택 한 줄"로 재구성 — 기획 의도가 README뿐 아니라 앱 안에서도 읽히게.
 
 (다음 확장 아이디어: 가입·키가 필요 없는 Open-Meteo API는 16일 예보를 무료로 줘서, 이걸 붙이면 "2주 뒤" 날짜도 등록 즉시 예보를 보여줄 수 있다. 10일 이후 예보는 정확도가 낮아 참고용 표시가 필요.)
+
+## 과제 8 구현 내용 (Source Code 품질관리 · Build & Deployment)
+
+**1. ESLint 점검** — `eslint` + `eslint-plugin-vue`를 설치하고 `eslint.config.js`(flat config)에 JS 기본 규칙(`js.configs.recommended`) + Vue 3 필수 규칙(`flat/essential`)을 설정했다. `npm run lint`로 실행. 첫 점검에서 에러 4건이 나왔는데 전부 `catch (e)`에서 `e`를 안 쓴다는 no-unused-vars였다 — 최신 ESLint는 catch 매개변수까지 미사용 검사를 한다. 에러 객체가 필요 없는 자리들이라 `catch { }`(optional catch binding) 문법으로 고쳐 **0 errors** 확인.
+
+**2. API 키 관리** — 과제 6 때부터 해둔 구조 그대로: 키는 `.env`의 `VITE_WEATHER_API_KEY`로 분리, `.gitignore`에 등록돼 Git에 안 올라가고, 채점자/팀원용 양식은 `.env.example`로 공유 (위 "실행 방법" 참고). git 저장소를 만들면서 `git ls-files`로 `.env`가 실제로 추적 안 되는 것까지 확인했다.
+
+**3. Build** — `npm run build`로 `dist/`에 정적 파일 생성, 에러 없이 통과.
+
+**4. Vercel 배포 (GitHub 리모트 기반)** — git 저장소를 GitHub에 올리고, Vercel이 저장소를 가져와 자동 빌드·배포하도록 연결했다. 이때 미리 챙겨야 했던 것 두 가지:
+
+- **환경변수 등록**: `.env`는 Git에 없으니 Vercel이 빌드할 때 키를 모른다 → Vercel 프로젝트 설정의 Environment Variables에 `VITE_WEATHER_API_KEY`를 따로 등록해야 배포된 사이트에서 날씨가 뜬다.
+- **SPA 새로고침 404 대비**: history 모드 라우터라 `/weather/city_01` 같은 주소를 직접 열면 서버엔 그런 파일이 없어 404가 난다 → `vercel.json`의 rewrite 설정으로 모든 경로를 `index.html`로 돌려보내 라우터가 처리하게 했다.
+- 배포 URL: (배포 후 기입)
+
+## 트러블 슈팅 기록
+
+과제를 진행하며 실제로 만난 문제들과 푼 과정. 자세한 내용은 각 과제 절에 있고, 여기선 "증상 → 원인 → 해결"만 모았다.
+
+1. **페이지를 갔다 오면 즐겨찾기가 리셋됨** (과제 4) — 상태를 홈 뷰 안에 둬서, 페이지 이동으로 컴포넌트가 다시 만들어질 때 같이 초기화된 것 → 모듈 스코프 ref(composable)로 컴포넌트 밖에 승격해 해결. 이 경험이 과제 5에서 Pinia의 필요성을 이해하는 밑거름이 됐다.
+2. **검색어 ↔ URL 동기화 무한 되먹임 위험** (과제 4) — 양방향 watch로 묶으면 검색어→URL→watch→검색어 루프 → 단방향 두 개(입력 시 `router.replace`, mount 때 1회만 URL→검색어 복원)로 분리해서 원천 차단.
+3. **새로 발급한 API 키가 One Call에서 401** (과제 6) — "Invalid API key"라는 메시지만 보면 키 문제 같지만, 같은 키가 `2.5/weather`에선 200이었다 → 키가 아니라 플랜 권한 문제(One Call은 별도 구독, 신규 계정엔 미개방)로 판별 → 무료 엔드포인트 3개(현재날씨/예보/대기질)를 `Promise.all` 병렬 호출로 대체. **에러 메시지를 그대로 믿지 말고 교차 검증**할 것.
+4. **실제 API 전환 후 빈 데이터 렌더링 에러 가능성** (과제 6) — mock 시절엔 데이터가 항상 있었지만 응답 전엔 빈 배열 → 초기값 없는 `reduce`는 예외를 던지고 평균은 0으로 나누기가 됨 → `length` 가드 + 로딩/실패/성공 3분기 UI로 해결.
+5. **제주 소개 문구가 "제주특벨ㅈ·치도"처럼 깨져 보임** (과제 6) — 원인 후보를 데이터/코드/렌더링 세 층으로 나누고 응답 원문을 유니코드 단위로 확인 → 데이터는 정상(제주어 표기의 옛한글 아래아 ᆞ), 일반 폰트가 옛한글 조합을 못 그리는 **렌더링 문제**로 판별 → 폰트 추가(사용자 환경 의존 + 용량) 대신 괄호 병기를 잘라내는 `stripLeadingParen`으로 원천 차단. 병기 안에 중첩 괄호가 있어 정규식 대신 여닫이 개수 세기로 구현.
+6. **새로고침하면 여행 계획이 사라짐** (자체 기능) — 스토어는 메모리라 새로고침(JS 전체 재실행)에 초기화됨 → localStorage에 저장하고 스토어 초기값으로 읽어오는 구조로 해결. "페이지 이동에 살아남는 것(스토어)"과 "새로고침에 살아남는 것(localStorage)"은 다른 문제라는 걸 배움.
+7. **ESLint 첫 점검 에러 4건** (과제 8) — 위 과제 8 절 참고. `catch (e)` 미사용 매개변수 → optional catch binding.
+8. **배포에서 터질 문제 선제 처리** (과제 8) — SPA 새로고침 404와 Vercel 빌드 시 키 부재. 로컬에선 재현이 안 되고 배포해야 드러나는 유형이라 미리 `vercel.json`과 환경변수 등록으로 대비.
+
+## 배우며 느낀 점
+
+- **관심사 분리는 미래의 나를 위한 보험이었다.** 과제 7에서 UI 라이브러리로 화면을 통째로 갈아탈 때 stores/composables/api 폴더는 한 줄도 안 고쳤다. 과제 3~6 내내 "로직은 밖으로, 화면은 템플릿에"를 지킨 덕인데, 왜 나누는지를 머리로만 알다가 교체 비용이 확 줄어드는 걸로 체감했다.
+- **제약은 없애는 게 아니라 설계로 감싼다.** 무료 예보가 5일까지라 "2주 뒤 날씨"는 못 보여준다. 그런데 "여행을 등록해두면 5일 전부터 자동으로 보여준다"로 흐름을 뒤집으니, 같은 제약이 사용자에겐 "앱이 알아서 챙겨준다"는 경험이 됐다.
+- **보이는 것 말고 데이터를 확인한다.** 옛한글 깨짐 사건에서, 눈에는 오타로 보여도 유니코드를 까보니 정상 데이터였다. 텍스트가 이상하면 "보이는 모양"이 아니라 실제 코드값을 봐야 한다.
+- **에러 메시지는 단서지 결론이 아니다.** "Invalid API key"의 실제 원인은 플랜 권한이었다. 같은 키로 다른 엔드포인트를 호출해보는 교차 검증으로 원인을 갈랐다.
+- **AI와 협업하며 공부한 방식** — 코드는 AI와 함께 작성했지만, 각 단계에서 이해한 개념과 원리는 [공부노트.md](./공부노트.md)에 25개 섹션으로 직접 정리하며 따라갔다 (ref/.value부터 Pinia, 비동기, UI 라이브러리, localStorage까지). 이번 주에 제일 크게 배운 건 "뭘 모르는지"를 질문으로 좁혀가는 과정 자체였다.
 
 ## 사전에 공부한 내용
 
