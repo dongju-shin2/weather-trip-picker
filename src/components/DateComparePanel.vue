@@ -47,23 +47,28 @@ const comparison = computed(() => {
 
 <template>
   <BaseDashboardCard title="이 날짜엔 어디가 좋을까?">
-    <!-- 핵심 기능이라 제목 아래 큰 입력으로 — 좌측 정렬, 클릭 가능한 요소임이 분명하게 -->
-    <el-date-picker
-      v-model="pickedDate"
-      class="date-input"
-      type="date"
-      placeholder="여행 날짜 선택"
-      :disabled-date="disabledDate"
-      @change="onPick"
-    />
+    <!-- 핵심 기능 입력 — 제목과 같은 줄 오른쪽 끝에 배치 -->
+    <template #header>
+      <el-date-picker
+        v-model="pickedDate"
+        class="date-input"
+        type="date"
+        placeholder="여행 날짜 선택"
+        :disabled-date="disabledDate"
+        @change="onPick"
+      />
+    </template>
 
-    <!-- 안내 문구는 카드 없이 입력 필드 바로 아래 보조 텍스트로 -->
-    <p v-if="!pickedDate" class="hint">
-      날짜를 고르면 5개 도시의 그 날 예보를 여행하기 좋은 순서로 보여드려요 (무료 예보 범위: 오늘부터 5일)
-    </p>
+    <!-- 날짜 미선택 시 — 결과가 뜰 자리를 미리 보여주는 empty state -->
+    <div v-if="!pickedDate" class="empty-state">
+      <p>
+        날짜를 선택하면 이곳에 5개 도시가 여행하기 좋은 순서로 표시돼요.<br />
+        (무료 예보 범위: 오늘부터 5일)
+      </p>
+    </div>
 
     <!-- 날짜 선택 후 결과 — 얇은 테두리 카드 한 겹 (섹션 자체는 카드가 아님) -->
-    <div v-if="pickedDate" class="panel-card">
+    <div v-else class="panel-card">
       <el-skeleton v-if="isLoading" :rows="3" animated />
       <div v-else-if="loadError" class="error-box">
         <el-alert :title="loadError" type="error" show-icon :closable="false" />
@@ -90,6 +95,7 @@ const comparison = computed(() => {
   --el-input-hover-border-color: #4f46e5;
   max-width: 100%;
   height: 54px;
+  flex-shrink: 1;
 }
 /* 내부 래퍼(흰 배경 + 1px 보더 역할의 inset shadow)를 같이 키움 */
 .date-input :deep(.el-input__wrapper) {
@@ -111,18 +117,32 @@ const comparison = computed(() => {
 
 /* 카드 한 겹 — 테두리만 쓰고 그림자는 안 씀 (둘 중 하나만) */
 .panel-card {
-  margin-top: 16px;
   background: #fff;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
   padding: 16px 20px;
+  min-height: 150px;
+  box-sizing: border-box;
 }
 
-/* 입력 필드 바로 아래 보조 안내 문구 */
-.hint {
-  margin: 10px 0 0;
+/* 결과가 뜰 자리 미리 보여주기 — 점선 보더 placeholder (TripPlanner와 같은 스타일) */
+.empty-state {
+  min-height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 20px;
+  text-align: center;
+  box-sizing: border-box;
+}
+.empty-state p {
+  margin: 0;
   color: var(--color-text-sub);
-  font-size: 14px;
+  font-size: 15px;
+  line-height: 1.7;
 }
 
 .error-box {

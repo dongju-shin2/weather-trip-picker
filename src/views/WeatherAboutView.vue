@@ -60,8 +60,6 @@ const router = useRouter()
   font-size: 20px;
   font-weight: 700;
   color: var(--color-heading);
-  border-left: 4px solid #4f46e5;
-  padding-left: 10px;
   line-height: 1.3;
 }
 

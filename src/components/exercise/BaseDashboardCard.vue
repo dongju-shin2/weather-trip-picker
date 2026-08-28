@@ -34,9 +34,6 @@ defineProps({
   font-size: 27px;
   font-weight: 700;
   color: var(--color-heading);
-  /* 포인트 컬러 세로 accent bar */
-  border-left: 4px solid #4f46e5;
-  padding-left: 12px;
   line-height: 1.3;
 }
 </style>

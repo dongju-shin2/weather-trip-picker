@@ -78,24 +78,29 @@ const saveTrip = () => {
   <BaseDashboardCard id="my-trip" title="내 여행">
     <!-- 콘텐츠는 얇은 테두리 카드 한 겹으로 (섹션 자체는 카드가 아님) -->
     <div class="panel-card">
-    <!-- 아직 등록 전 → 목적지 + 기간 등록 폼 -->
-    <div v-if="!tripStore.hasTrip" class="trip-form">
-      <el-select v-model="formCityId" class="city-select">
-        <el-option v-for="c in CITIES" :key="c.id" :label="c.name" :value="c.id" />
-      </el-select>
-      <!-- daterange: 시작~종료를 한 번에. 당일치기는 같은 날을 두 번 클릭 -->
-      <el-date-picker
-        v-model="formDates"
-        type="daterange"
-        start-placeholder="가는 날"
-        end-placeholder="오는 날"
-        :disabled-date="disabledDate"
-      />
-      <el-button type="primary" @click="saveTrip">등록</el-button>
-      <p class="hint">
-        여행지와 기간을 등록해두면 여행 5일 전부터 일차별 예보를 여기서 바로 보여드려요. (당일치기는 가는 날 = 오는 날)
-      </p>
-    </div>
+    <!-- 아직 등록 전 → 목적지 + 기간 등록 폼 + 결과가 뜰 자리 empty state -->
+    <template v-if="!tripStore.hasTrip">
+      <div class="trip-form">
+        <el-select v-model="formCityId" class="city-select">
+          <el-option v-for="c in CITIES" :key="c.id" :label="c.name" :value="c.id" />
+        </el-select>
+        <!-- daterange: 시작~종료를 한 번에. 당일치기는 같은 날을 두 번 클릭 -->
+        <el-date-picker
+          v-model="formDates"
+          type="daterange"
+          start-placeholder="가는 날"
+          end-placeholder="오는 날"
+          :disabled-date="disabledDate"
+        />
+        <el-button type="primary" @click="saveTrip">등록</el-button>
+      </div>
+      <div class="empty-state">
+        <p>
+          여행지와 기간을 등록하면 여행 5일 전부터 이곳에 일차별 예보가 표시돼요.<br />
+          (당일치기는 가는 날 = 오는 날)
+        </p>
+      </div>
+    </template>
 
     <!-- 등록 후 → D-day + 기간 + (범위 안이면) 일차별 예보 -->
     <div v-else class="trip-info">
@@ -153,8 +158,26 @@ const saveTrip = () => {
   color: var(--color-text-sub);
   font-size: 15px;
 }
-.trip-form .hint {
-  margin-bottom: 0;
+
+/* 결과가 뜰 자리 미리 보여주기 — 점선 보더 placeholder (DateComparePanel과 같은 스타일) */
+.empty-state {
+  margin-top: 14px;
+  min-height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 20px;
+  text-align: center;
+  box-sizing: border-box;
+}
+.empty-state p {
+  margin: 0;
+  color: var(--color-text-sub);
+  font-size: 15px;
+  line-height: 1.7;
 }
 
 .trip-title {
