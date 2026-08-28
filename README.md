@@ -55,9 +55,9 @@ cp .env.example .env   # 그 다음 .env를 열어 your_api_key_here 자리에 �
 ## 과제 1 요구사항 구현 위치
 
 1. **배열 렌더링 (v-for)**: `weatherList`를 `ref`로 선언하고 카드 목록을 `v-for`로 출력. key는 index가 아닌 `:key="city.id"`로 바인딩.
-2. **조건부 렌더링 (v-if)**: 카드 안에서 `city.temp >= 25`면 🔥 더움 배지, 아니면 `v-else`로 ❄️ 선선함 배지 표시.
-3. **:value + @input**: 검색 input에 `v-model` 대신 `:value="searchQuery"` + `@input="onInput"` 조합 사용 (한글 IME 확인 목적). 입력값은 input 아래 "검색 중인 도시: ..."로 실시간 출력.
-4. **이벤트 및 수식어**: 카드 클릭 시 `selectCity`로 상태바에 "{도시명}이 선택되었습니다." 표시. [상세보기] 버튼은 `@click.stop="showDetail(...)"`로 alert만 띄우고 카드 클릭 이벤트로 버블링되지 않음. 초기 상태바 문구는 "카드를 클릭하거나 검색해 보세요."
+2. **조건부 렌더링 (v-if)**: 카드 안에서 `city.temp >= 25`면 🔥 더움 배지, 아니면 `v-else`로 ❄️ 선선함 배지 표시. (현재 배포 화면에선 리디자인 때 이 배지를 삭제했다: 당시 화면은 `WeatherMockup.vue`에 보존 — 아래 "UI/UX 리디자인" 절 참고)
+3. **:value + @input**: 검색 input에 `v-model` 대신 `:value="searchQuery"` + `@input="onInput"` 조합 사용 (한글 IME 확인 목적). 입력값은 input 아래 "검색 중인 도시: ..."로 실시간 출력. (이 표시 줄은 과제 7에서 정리했고 필터링 동작은 그대로다: `WeatherMockup.vue`에 보존)
+4. **이벤트 및 수식어**: 카드 클릭 시 `selectCity`로 상태바에 "{도시명}이 선택되었습니다." 표시. [상세보기] 버튼은 `@click.stop="showDetail(...)"`로 alert만 띄우고 카드 클릭 이벤트로 버블링되지 않음. 초기 상태바 문구는 "카드를 클릭하거나 검색해 보세요." (alert는 과제 4에서 상세 페이지 이동(`router.push`)으로 발전했고, `.stop` 버블링 차단은 지금도 그대로 쓰인다)
 5. **데이터 추가**: 인천(23℃, 흐림 → 선선함 배지), 제주(27℃, 맑음 → 더움 배지) 2개 추가. 25도 기준 라벨이 양쪽 다 나오도록 온도를 나눴다. (과제 2 명세의 값으로 통일)
 
 ## 과제 2 요구사항 구현 위치
@@ -68,16 +68,16 @@ cp .env.example .env   # 그 다음 .env를 열어 your_api_key_here 자리에 �
    - `selectedCityInfo`는 `watch`: 감시 대상이 이 값 하나로 명확하고, 값이 실제로 바뀔 때만 실행되어 첫 로드 때 불필요한 로그가 안 찍힌다. 상태바 문구가 바뀔 때마다 `[watch 감지] ...` 콘솔 출력.
    - `searchQuery`는 `watchEffect`: 콜백 안에서 읽은 반응형 값을 자동으로 의존성 추적하고, 시작 시 1회 즉시 실행된다. 타이핑마다 `[watchEffect 자동 호출] ...` 콘솔 출력.
 4. **검색 결과 3분기**: 템플릿에서 `v-if`(검색어 없음 → 원본 전체 리스트) / `v-else-if`(매칭 결과 있음 → 필터링된 리스트) / `v-else`(없음 → "검색 결과가 일치하는 도시가 없습니다" 안내 문구)로 분기.
-5. **나만의 상태/computed/watcher**: 컨셉은 "날씨 보고 여행지 고르기". 도시별 추천 명소 2개(`spots`)를 데이터에 추가해 카드와 상세보기 alert에 표시했다.
+5. **나만의 상태/computed/watcher**: 컨셉은 "날씨 보고 여행지 고르기". 도시별 추천 명소 2개(`spots`)를 데이터에 추가해 카드와 상세보기 alert(현재는 상세 페이지)에 표시했다.
    - 반응형 상태: `favorites`: 카드의 별(☆/★) 버튼으로 즐겨찾기 토글 (별 버튼도 `@click.stop` 필수: 안 하면 카드 선택까지 같이 눌림), `showSpots`: 명소 보기/숨기기 토글 (정적 데이터인 spots를 반응형 상태로 제어)
-   - computed: `hottestId`/`coldestId`: 최고/최저 기온 도시를 찾아 카드에 🔥/🧊 태그로 강조, `avgTemp`(전체 평균 기온), `resultCount`(검색 결과 개수)
+   - computed: `hottestId`/`coldestId`: 최고/최저 기온 도시를 찾아 카드에 🔥/🧊 태그로 강조(현재 화면은 리디자인 후 "최고기온/최저기온" 작은 텍스트로 표시), `avgTemp`(전체 평균 기온), `resultCount`(검색 결과 개수)
    - watcher: `favorites` 변화 시 몇 개 담겼는지 콘솔 출력, `resultCount`를 watch해서 검색 결과가 0개가 되는 순간 콘솔 출력 (computed도 watch 대상이 될 수 있는지 확인해 봄)
 
 ## 과제 3 구현 내용 (컴포넌트 분리 - props / emits / slot)
 
 과제 1\~2에서 한 파일이던 화면을 역할별 컴포넌트로 쪼갰다. 페이지 전체는 `views/`, 재사용 부품은 `components/exercise/`, 앱 전체 레이아웃 부품은 `components/` 바로 아래에 두는 기준으로 나눔.
 
-1. **BaseDashboardCard.vue**: 흰색 라운드 패널 디자인을 공통으로 쓰는 래퍼. 본문은 기본 `<slot />`, 타이틀 오른쪽 영역은 `<slot name="header" />`(named slot)로 부모가 주입한다 (홈에서는 명소 토글 버튼, 즐겨찾기에서는 개수 뱃지가 들어감). slot 콘텐츠는 부모 스코프에서 컴파일되므로 부모의 상태/메서드와 직접 바인딩 가능한 점을 활용했다.
+1. **BaseDashboardCard.vue**: 흰색 라운드 패널 디자인을 공통으로 쓰는 래퍼. 본문은 기본 `<slot />`, 타이틀 오른쪽 영역은 `<slot name="header" />`(named slot)로 부모가 주입한다 (홈에서는 명소 토글 버튼, 즐겨찾기에서는 개수 뱃지가 들어감). slot 콘텐츠는 부모 스코프에서 컴파일되므로 부모의 상태/메서드와 직접 바인딩 가능한 점을 활용했다. (겉모습은 이후 el-card(과제 7) → 카드 없는 섹션(리디자인)으로 바뀌었지만, 이 slot 구조는 지금도 그대로다)
 2. **SearchBar.vue**: `searchQuery`를 props로 받고 `update-query` 이벤트를 emit하는 프레젠테이션 컴포넌트. 상태 소유는 부모(홈 뷰), 입력 UI만 분리했다. `:value` + `@input` 패턴(한글 IME 실시간 갱신)은 과제 1에서 그대로 가져옴.
 3. **WeatherCard.vue**: 도시 하나를 그리는 카드. `city` 객체와 표시 옵션들(`showSpots`, `isFavorite`, `isActive`, `isHottest`, `isColdest`)을 props로 받고, 사용자 동작은 전부 emit(`select-card`, `click-detail`, `toggle-favorite`)으로 부모에 위임한다. 카드가 데이터를 직접 바꾸지 않으니 홈/즐겨찾기 어느 화면에서도 재사용 가능.
 4. **StatusBar.vue**: `message` prop 하나만 받는 하단 상태바. 비어 있으면 기본 안내 문구를 자체 표시.
@@ -104,7 +104,7 @@ cp .env.example .env   # 그 다음 .env를 열어 your_api_key_here 자리에 �
    - state: `unit`: 단위를 저장하는 변수 (초기값 `'celsius'`)
    - getters: `unitSymbol`: 현재 단위 상태에 맞는 기호 (℃ / ℉)
    - actions: `toggleUnit`: `'celsius'`와 `'fahrenheit'`를 토글(스위칭)하는 함수
-2. **UnitToggler.vue**: 단위 설정을 변경하는 UI 버튼과 영역. "날씨단위: 섭씨(℃)" 문구 + [단위변경] 버튼으로 구성했고, 앱 전체 부품이라 `src/components/` 바로 아래에 뒀다. state/getter를 구조분해할 때 `storeToRefs`를 써야 반응성이 안 끊긴다는 걸 여기서 적용했다 (action은 그냥 함수라 바로 꺼내도 됨).
+2. **UnitToggler.vue**: 단위 설정을 변경하는 UI 버튼과 영역. "날씨단위: 섭씨(℃)" 문구 + [단위변경] 버튼으로 구성했고(버튼은 이후 과제 7에서 el-switch로 교체), 앱 전체 부품이라 `src/components/` 바로 아래에 뒀다. state/getter를 구조분해할 때 `storeToRefs`를 써야 반응성이 안 끊긴다는 걸 여기서 적용했다 (action은 그냥 함수라 바로 꺼내도 됨).
 3. **Navigation Bar 옆에 배치**: `TheHeader.vue`에서 내비 바와 UnitToggler를 `.top-bar` flex 한 줄로 나란히 배치 (mockup처럼 내비 왼쪽 / 단위 오른쪽).
 4. **메인과 상세 날씨에 단위 설정 변경 적용**: 기본 원본 데이터(`temp`)는 섭씨 숫자 그대로 두고, 화면에 뿌릴 값만 `displayTemp` computed로 변환했다. 적용 위치: `WeatherCard.vue`(메인·즐겨찾기 공용 카드), `WeatherDetailView.vue`(실시간 기온), 홈의 전체 평균 기온. 단위 기호도 하드코딩(℃) 대신 스토어의 `unitSymbol`을 바인딩해서 [단위변경]을 누르면 전 화면이 즉시 갱신된다.
    - (참고) 과제 슬라이드의 "메인/상세에 적용하면 유사한 코드가 중복됨 → Composable로 해결 가능함 (범위 제외)" 부분을 범위 밖이지만 실제로 구현했다. 화씨 변환 공식(`Math.round(temp * 9 / 5 + 32)`)은 스토어의 `convert` 함수형 getter 한 곳에만 두고, "변환값 + 단위 기호"로 조립해 표시하는 부분은 `composables/useDisplayTemp.js`의 `formatTemp`로 모았다. 덕분에 카드/상세/예보 테이블이 전부 `{{ formatTemp(temp) }}` 한 줄로 통일됨 (computed가 아니라 함수로 만든 이유: 예보 테이블처럼 행마다 다른 값을 넘기는 자리에서도 쓰기 위해).
@@ -146,7 +146,7 @@ cp .env.example .env   # 그 다음 .env를 열어 your_api_key_here 자리에 �
 
 **적용 원칙: 로직은 무수정, UI 계층만 교체**: 과제 3\~6에서 화면과 로직(stores/composables/api)을 분리해둔 덕분에, 이번 과제에서 스토어·composable·api 폴더는 한 줄도 안 바꾸고 템플릿의 마크업만 갈아끼웠다. 관심사 분리가 잘 돼 있으면 UI 교체 비용이 싸진다는 걸 체감한 과제.
 
-화면별 교체 내역:
+화면별 교체 내역 (참고: 이 중 배지류 el-tag, BaseDashboardCard의 el-card, 데스크톱 2열 그리드는 이후 "UI/UX 리디자인"에서 한 번 더 정리됨 — 현재 화면 기준은 아래 리디자인 절):
 
 - **테마 커스터마이징** (App.vue 전역 스타일): Element Plus는 색을 전부 CSS 변수로 쓰기 때문에 `:root`에서 `--el-color-primary`를 우리 인디고(#4f46e5)로 덮고 light-3\~9 단계, 폰트, el-card 모서리(16px)까지 기존 디자인에 맞췄다.
 - **BaseDashboardCard**: 직접 만든 흰 패널 div → `el-card`. 우리 slot 구조(#header/기본)를 el-card의 slot에 그대로 이어붙이는 얇은 래퍼가 됐다. 이걸 쓰는 홈/즐겨찾기는 자동으로 적용받음.
